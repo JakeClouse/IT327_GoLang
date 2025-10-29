@@ -1,38 +1,39 @@
 package main
 
-import "fmt"
-import "strconv"
+import (
+	"fmt"
+	"os"
+	"strconv"
+)
 
 func main() {
 
 	//collecting user input
-	var input String = ""
+	var inputBuf string = ""
 	fmt.Println("How many terms does your function have?(up to 3): ")
-	fmt.ScanLn(&input)
+	fmt.Scanln(&inputBuf)
 
-	var numTerms int = strconv.Atoi(input)
-
-	var i int = numTerms
-	var function [numTerms]double = []
-
-	while (i >= 0){
-		fmt.Println("Input term " + i + " of your function(highest order first): ")
-		fmt.ScanLn(&input[i])
+	numTerms, err := strconv.Atoi(inputBuf)
+	if err != nil {
+		os.Exit(1)
 	}
 
+	var i int = numTerms
+	function := make([]float64, numTerms)
+
+	for i >= 0 {
+		fmt.Println("Input term " + strconv.Itoa(i) + " of your function(highest order first): ")
+		fmt.Scanln(&inputBuf)
+
+		value, err := strconv.ParseFloat(inputBuf, 64)
+		if err != nil {
+			os.Exit(1)
+		}
+
+		function[i] = value
+		i++
+	}
 
 	//starting function processing.
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

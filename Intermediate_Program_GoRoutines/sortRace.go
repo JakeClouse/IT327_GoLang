@@ -1,31 +1,35 @@
 package main
-
+//Importing packages, fmt for printing, time for measuring execution time, sort for standard library sorting, and sync for goroutine synchronization
 import (
 	"fmt"
 	"time"
 	"sort"
+	"sync"
 )
 
 var SortedArray []int
 
 func main() {
+	var wg sync.WaitGroup
 	var backwardsArray []int
-	backwardsArray = make([]int, 10000)
-	SortedArray = make([]int, 10000)
-	for i:=10000; i>0; i-- {
-		backwardsArray[10000-i] = i
+	backwardsArray = make([]int, 100000)
+	SortedArray = make([]int, 100000)
+	for i:=100000; i>0; i-- {
+		backwardsArray[100000-i] = i
 	}
-	for i:=1; i<=10000; i++ {
+	for i:=1; i<=100000; i++ {
 		SortedArray[i-1] = i
-	} 
-	go selectionSort(backwardsArray)
-	go insertionSort(backwardsArray)
-	go bubbleSort(backwardsArray)
-	go stdLibSort(backwardsArray)
-	time.Sleep(5 * time.Second)
+	}
+	wg.Add(4)
+	go selectionSort(append([]int(nil), backwardsArray...), &wg)
+	go insertionSort(append([]int(nil), backwardsArray...), &wg)
+	go bubbleSort(append([]int(nil), backwardsArray...), &wg)
+	go stdLibSort(append([]int(nil), backwardsArray...), &wg)
+	wg.Wait()
 }
 
-func selectionSort(arr []int) {
+func selectionSort(arr []int, wg *sync.WaitGroup) {
+	defer wg.Done()
 	startTime := time.Now()
 	for i:=0;i<(len(arr)-1);i++ {
 		minIndex := i
@@ -44,7 +48,8 @@ func selectionSort(arr []int) {
 	}
 }
 
-func insertionSort(arr []int) {
+func insertionSort(arr []int, wg *sync.WaitGroup) {
+	defer wg.Done()
 	startTime := time.Now()
 	for i:=1;i<len(arr);i++ {
 		currVal := arr[i]
@@ -63,7 +68,8 @@ func insertionSort(arr []int) {
 	}
 }
 
-func bubbleSort(arr []int) {
+func bubbleSort(arr []int, wg *sync.WaitGroup) {
+	defer wg.Done()
 	startTime := time.Now()
 	for i:=0;i<len(arr);i++{
 		valSwapped := false
@@ -85,7 +91,8 @@ func bubbleSort(arr []int) {
 	}
 }
 
-func stdLibSort(arr []int) {
+func stdLibSort(arr []int, wg *sync.WaitGroup) {
+	defer wg.Done()
 	startTime := time.Now()
 	sort.Ints(arr)
 	endTime := time.Since(startTime)

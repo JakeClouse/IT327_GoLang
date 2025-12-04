@@ -2,6 +2,22 @@ package main
 
 import "fmt"
 
+func main() {
+
+	var a int = 10
+
+	addTen(&a)
+
+	fmt.Println(a)
+
+}
+
+func addTen(b *int) int {
+	*b = *b + 10
+	return *b
+}
+
+/*
 func incrementAndAdd(a int) func(b int) int {
 	return func(b int) int {
 		a++
@@ -19,6 +35,7 @@ func main() {
 	newFunction2 := incrementAndAdd(10)
 	fmt.Println(newFunction2(20))
 }
+*/
 
 /*
 	var x int = 2

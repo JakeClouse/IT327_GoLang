@@ -1,17 +1,3 @@
-//Parallel BFS for IT327 Advanced program
-// Author: Jake CLouse
-// Date: 12/6/2025
-
-package main
-
-import (
-	"sync"
-)
-
-type Pair struct {
-	Row, Col int
-}
-
 func checkNeigbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, parentCell Pair) {
 	mu_visited.Lock()
 	if (*visited)[cell.Row][cell.Col] == (Pair{-1, -1}) {
@@ -26,7 +12,7 @@ func checkNeigbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited
 
 }
 
-func concurrentOperation(maze [][]Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, wg *sync.WaitGroup, mu_visited *sync.Mutex, mu_frontier *sync.Mutex) {
+func concurrentOperation(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, wg *sync.WaitGroup, mu_visited *sync.Mutex, mu_frontier *sync.Mutex) {
 	defer wg.Done()
 	if !maze[cell.Row][cell.Col].Top {
 		checkNeigbor(Pair{Row: cell.Row - 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell)
@@ -42,7 +28,7 @@ func concurrentOperation(maze [][]Cell, cell Pair, nextFrontier *[]Pair, visited
 	}
 }
 
-func paralellBFS(maze [][]Cell, startRow int, startCol int) {
+func paralellBFS(maze [][]*Cell, startRow int, startCol int) [][]Pair {
 
 	visited := make([][]Pair, len(maze))
 	for i := range visited {
@@ -70,4 +56,5 @@ func paralellBFS(maze [][]Cell, startRow int, startCol int) {
 		frontier = nextFrontier
 		nextFrontier = []Pair{}
 	}
+	return visited
 }

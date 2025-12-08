@@ -47,13 +47,16 @@ func main() {
 	Maze := CreateMaze(10, 10)
 	//print maze, taken from Maze.cpp reference file
 	printMaze(Maze)
-	visited := ParallelBFS(Maze.Cells, 0, 0)
+	path, _ := ParallelBFS(Maze.Cells, 10, 10)
 	//show all maze array values
-	Maze.DS.PrintArrayValues()
+	// Maze.DS.PrintArrayValues()
 	//print all visited cells and their parents?
-	for i := range visited {
-		for j := range visited[0] {
-			fmt.Printf("Cell (%d, %d) came from (%d, %d)\n", i, j, visited[i][j].Row, visited[i][j].Col)
-		}
+	// for i := range visited {
+	// 	for j := range visited[0] {
+	// 		fmt.Printf("Cell (%d, %d) came from (%d, %d)\n", i, j, visited[i][j].Row, visited[i][j].Col)
+	// 	}
+	// }
+	for i := range path {
+		fmt.Printf("Path Cell %d: (%d, %d)\n", i, path[i].Row, path[i].Col)
 	}
 }

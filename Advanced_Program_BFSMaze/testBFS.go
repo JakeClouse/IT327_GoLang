@@ -83,7 +83,18 @@ func main() {
 
 	fmt.Printf("Parallel BFS took %s\n", elapsedBFSTime)
 
+	startSequentialBFSTime := time.Now()
+	fmt.Println("Starting Sequential BFS...")
+
+	path2, _ := SequentialBFS(Maze.Cells, 10, 10)
+	//Maze.DS.PrintArrayValues()
+
+	elapsedSequentialBFSTime := time.Since(startSequentialBFSTime)
+
+	fmt.Printf("Sequential BFS took %s\n", elapsedSequentialBFSTime)
+
 	for i := range path {
 		fmt.Printf("Path Cell %d: (%d, %d)\n", i, path[i].Row, path[i].Col)
+		fmt.Printf("Path2 Cell %d: (%d, %d)\n", i, path2[i].Row, path2[i].Col)
 	}
 }

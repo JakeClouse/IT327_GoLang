@@ -8,13 +8,17 @@ package main
 
 import (
 	"sync"
+	"sync/atomic"
 )
 
 type Pair struct {
 	Row, Col int
 }
 
-func checkNeigbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, parentCell Pair) {
+func checkNeigbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, parentCell Pair, numRows int, numCols int, success *int32) {
+	if cell.Row == numRows && cell.Col == numCols {
+		atomic.AddInt32(success, 1)
+	}
 	mu_visited.Lock()
 	if (*visited)[cell.Row][cell.Col] == (Pair{-1, -1}) {
 		(*visited)[cell.Row][cell.Col] = Pair{Row: parentCell.Row, Col: parentCell.Col}
@@ -28,23 +32,34 @@ func checkNeigbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited
 
 }
 
-func concurrentOperation(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, wg *sync.WaitGroup, mu_visited *sync.Mutex, mu_frontier *sync.Mutex) {
+func concurrentOperation(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, wg *sync.WaitGroup, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, numRows int, numCols int, success *int32) {
 	defer wg.Done()
 	if !maze[cell.Row][cell.Col].Top {
-		checkNeigbor(Pair{Row: cell.Row - 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell)
+		checkNeigbor(Pair{Row: cell.Row - 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
 	}
 	if !maze[cell.Row][cell.Col].Right {
-		checkNeigbor(Pair{Row: cell.Row, Col: cell.Col + 1}, nextFrontier, visited, mu_visited, mu_frontier, cell)
+		checkNeigbor(Pair{Row: cell.Row, Col: cell.Col + 1}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
 	}
 	if !maze[cell.Row][cell.Col].Bottom {
-		checkNeigbor(Pair{Row: cell.Row + 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell)
+		checkNeigbor(Pair{Row: cell.Row + 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
 	}
 	if !maze[cell.Row][cell.Col].Left {
-		checkNeigbor(Pair{Row: cell.Row, Col: cell.Col - 1}, nextFrontier, visited, mu_visited, mu_frontier, cell)
+		checkNeigbor(Pair{Row: cell.Row, Col: cell.Col - 1}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
 	}
 }
 
-func ParallelBFS(maze [][]*Cell, startRow int, startCol int) [][]Pair {
+func reconstructPath(visited [][]Pair, start Pair, goal Pair) []Pair {
+	var path []Pair
+	current := goal
+	for current != start {
+		path = append(path, current)
+		current = visited[current.Row][current.Col]
+	}
+	path = append(path, start)
+	return path
+}
+
+func ParallelBFS(maze [][]*Cell, numRows int, numCols int) ([]Pair, [][]Pair) {
 
 	visited := make([][]Pair, len(maze))
 	for i := range visited {
@@ -55,22 +70,26 @@ func ParallelBFS(maze [][]*Cell, startRow int, startCol int) [][]Pair {
 			visited[i][j] = Pair{Row: -1, Col: -1}
 		}
 	}
-	visited[startRow][startCol] = Pair{Row: startRow, Col: startCol}
+	visited[0][0] = Pair{Row: 0, Col: 0}
 	var frontier []Pair
-	frontier = append(frontier, Pair{Row: startRow, Col: startCol})
+	frontier = append(frontier, Pair{Row: 0, Col: 0})
 	nextFrontier := []Pair{}
 	var mu_visited sync.Mutex
 	var mu_frontier sync.Mutex
 	var wg sync.WaitGroup
-	for len(frontier) > 0 {
+	var success int32 = 0
+	for (len(frontier) > 0) && atomic.LoadInt32(&success) == 0 {
 
 		for i := range frontier {
 			wg.Add(1)
-			go concurrentOperation(maze, frontier[i], &nextFrontier, &visited, &wg, &mu_visited, &mu_frontier)
+			go concurrentOperation(maze, frontier[i], &nextFrontier, &visited, &wg, &mu_visited, &mu_frontier, numRows-1, numCols-1, &success)
 		}
 		wg.Wait()
 		frontier = nextFrontier
 		nextFrontier = []Pair{}
 	}
-	return visited
+	if success > 0 {
+		println("Goal Found!, terminating BFS.")
+	}
+	return reconstructPath(visited, Pair{Row: 0, Col: 0}, Pair{Row: numRows - 1, Col: numCols - 1}), visited
 }

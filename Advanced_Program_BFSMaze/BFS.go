@@ -9,6 +9,11 @@ package main
 import (
 	"sync"
 )
+
+type Pair struct {
+	Row, Col int
+}
+
 func checkNeigbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, parentCell Pair) {
 	mu_visited.Lock()
 	if (*visited)[cell.Row][cell.Col] == (Pair{-1, -1}) {

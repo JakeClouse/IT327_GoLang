@@ -76,14 +76,14 @@ func main() {
 	startBFSTime := time.Now()
 	fmt.Println("Starting Parallel BFS...")
 
-	ParallelBFS(Maze.Cells, 0, 0)
+	path, _ := ParallelBFS(Maze.Cells, 10, 10)
 	//Maze.DS.PrintArrayValues()
 
 	elapsedBFSTime := time.Since(startBFSTime)
 
 	fmt.Printf("Parallel BFS took %s\n", elapsedBFSTime)
 
-	//print all visited cells and their parents
-	//printPath(visited)
-
+	for i := range path {
+		fmt.Printf("Path Cell %d: (%d, %d)\n", i, path[i].Row, path[i].Col)
+	}
 }

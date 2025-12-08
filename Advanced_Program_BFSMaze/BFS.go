@@ -11,10 +11,14 @@ import (
 	"sync/atomic"
 )
 
+// Struct for a point to simplify passing of values
 type Pair struct {
 	Row, Col int
 }
 
+// Handles all mutex and atomic operations, required for concurrent BFS
+// Adds a node to the next frontier if it has not been visited
+// Terminates BFS if the target cell is found
 func concurrentCheckNeighbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, parentCell Pair, targetRow int, targetCol int, success *int32) {
 	if cell.Row == targetRow && cell.Col == targetCol {
 		atomic.AddInt32(success, 1)
@@ -32,6 +36,9 @@ func concurrentCheckNeighbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair,
 
 }
 
+// Function invoked as goroutine
+// Passes in all important arguments for this and future calls
+// verifies that there is a path then calls checkNeighbor
 func concurrentOperation(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, wg *sync.WaitGroup, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, targetRow int, targetCol int, success *int32) {
 	defer wg.Done()
 	if !maze[cell.Row][cell.Col].Top {
@@ -48,6 +55,8 @@ func concurrentOperation(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visite
 	}
 }
 
+// Given the visited array, reconstruct the path backwards from the finish to the start
+// This is the solution to our maze
 func reconstructPath(visited [][]Pair, start Pair, goal Pair) []Pair {
 	var path []Pair
 	current := goal
@@ -59,6 +68,9 @@ func reconstructPath(visited [][]Pair, start Pair, goal Pair) []Pair {
 	return path
 }
 
+// This is the core logic for the Parallel BFS
+// Each layer(frontier) is executed concurrently, then the routines synchronize, then they do it again.
+// This is standard practice for a parallel BFS, the function returns the path from start to numRows, numCols, as well as the full visited array
 func ParallelBFS(maze [][]*Cell, numRows int, numCols int) ([]Pair, [][]Pair) {
 
 	visited := make([][]Pair, len(maze))
@@ -94,12 +106,15 @@ func ParallelBFS(maze [][]*Cell, numRows int, numCols int) ([]Pair, [][]Pair) {
 	return reconstructPath(visited, Pair{Row: 0, Col: 0}, Pair{Row: numRows - 1, Col: numCols - 1}), visited
 }
 
+// Helper function for sequential BFS
+// Checks if the current cell is the target cell and updates success accordingly
 func checkEnd(cell Pair, targetRow int, targetCol int, success *int) {
 	if cell.Row == targetRow && cell.Col == targetCol {
 		*success = 1
 	}
 }
 
+// Same logic as concurrent version, just executed sequentially without a mutex or waitgroup
 func SequentialFindNeighbors(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, targetRow int, targetCol int, success *int) {
 	if !maze[cell.Row][cell.Col].Top && (*visited)[cell.Row-1][cell.Col] == (Pair{-1, -1}) {
 		checkEnd(Pair{Row: cell.Row - 1, Col: cell.Col}, targetRow, targetCol, success)
@@ -123,6 +138,8 @@ func SequentialFindNeighbors(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, vi
 	}
 }
 
+// Almost exactly the same as concurrent version, just executed sequentially without a mutex or waitgroup
+// Does not call off as a goroutine, instead runs sequentially as a queue.
 func SequentialBFS(maze [][]*Cell, numRows int, numCols int) ([]Pair, [][]Pair) {
 
 	visited := make([][]Pair, len(maze))

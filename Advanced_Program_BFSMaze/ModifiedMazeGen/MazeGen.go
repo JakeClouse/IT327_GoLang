@@ -156,8 +156,8 @@ func right(cellIndex int, M *Maze) bool {
 
 func up(cellIndex int, M *Maze) bool {
 	neighborCellIndex := 0
-	if (cellIndex - M.Width) <= 0 {
-		return right(cellIndex, M)
+	if cellIndex < M.Width {
+		return down(cellIndex, M)
 	} else { //actually going up
 		neighborCellIndex = cellIndex - M.Width
 		if M.DS.Find(cellIndex) != M.DS.Find(neighborCellIndex) {
@@ -172,8 +172,8 @@ func up(cellIndex int, M *Maze) bool {
 
 func down(cellIndex int, M *Maze) bool {
 	neighborCellIndex := 0
-	if (cellIndex + M.Width) >= (M.Width * M.Height) {
-		return right(cellIndex, M)
+	if (cellIndex / M.Width) == M.Height-1 {
+		return up(cellIndex, M)
 	} else { //actually going down
 		neighborCellIndex = cellIndex + M.Width
 		if M.DS.Find(cellIndex) != M.DS.Find(neighborCellIndex) {

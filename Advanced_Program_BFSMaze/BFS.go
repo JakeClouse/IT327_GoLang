@@ -44,7 +44,7 @@ func concurrentOperation(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visite
 	}
 }
 
-func paralellBFS(maze [][]*Cell, startRow int, startCol int) [][]Pair {
+func ParallelBFS(maze [][]*Cell, startRow int, startCol int) [][]Pair {
 
 	visited := make([][]Pair, len(maze))
 	for i := range visited {

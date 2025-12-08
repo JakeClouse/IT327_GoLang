@@ -7,7 +7,7 @@ type DisjointSet struct {
 	theArray   []int
 }
 
-func newDisjointSet(size int) *DisjointSet {
+func NewDisjointSet(size int) *DisjointSet {
 	ds := &DisjointSet{
 		numElements: size,
 		theArray:   make([]int, size),

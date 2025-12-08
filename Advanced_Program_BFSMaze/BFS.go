@@ -1,3 +1,7 @@
+//Parallel BFS for IT327 Advanced program
+// Author: Jake CLouse
+// Date: 12/6/2025
+
 package main
 
 import (

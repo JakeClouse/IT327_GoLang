@@ -4,7 +4,7 @@
 
 // Modifications made by Jason Bliss using helper methods from Marcos to actually generate the maze, and modifying the implementation of Disjoint Set.
 
-package MazeGeneration
+package main
 
 import (
 	"fmt"

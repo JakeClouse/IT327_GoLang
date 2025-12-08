@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func getUserInput() [3]float64 {
+func getUserInput() (float64, float64, float64) {
 
 	//collecting user input
 	var inputBuf string = ""
@@ -29,16 +29,12 @@ func getUserInput() [3]float64 {
 		i--
 	}
 
-	return function
+	return function[0], function[1], function[2]
 
 }
 
-func getRoots(function [3]float64) {
+func getRoots(a float64, b float64, c float64) {
 	//does the quadratic formula with the variable names from the equation
-	var a float64 = function[2]
-	var b float64 = function[1]
-	var c float64 = function[0]
-
 	var root1 complex128
 	var root2 complex128
 
@@ -53,6 +49,6 @@ func getRoots(function [3]float64) {
 }
 
 func main() {
-	var function [3]float64 = getUserInput()
-	getRoots(function)
+	var a, b, c float64 = getUserInput()
+	getRoots(a, b, c)
 }

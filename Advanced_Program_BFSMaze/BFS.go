@@ -1,3 +1,14 @@
+//Parallel BFS for IT327 Advanced program
+// Author: Jake CLouse
+// Date: 12/6/2025
+
+//Edited by Brady McCue to have paramaters match with generated maze
+
+package main
+
+import (
+	"sync"
+)
 func checkNeigbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, parentCell Pair) {
 	mu_visited.Lock()
 	if (*visited)[cell.Row][cell.Col] == (Pair{-1, -1}) {

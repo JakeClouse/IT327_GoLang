@@ -15,7 +15,7 @@ type Pair struct {
 	Row, Col int
 }
 
-func checkNeigbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, parentCell Pair, numRows int, numCols int, success *int32) {
+func concurrentCheckNeighbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, parentCell Pair, numRows int, numCols int, success *int32) {
 	if cell.Row == numRows && cell.Col == numCols {
 		atomic.AddInt32(success, 1)
 	}
@@ -35,16 +35,16 @@ func checkNeigbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited
 func concurrentOperation(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, wg *sync.WaitGroup, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, numRows int, numCols int, success *int32) {
 	defer wg.Done()
 	if !maze[cell.Row][cell.Col].Top {
-		checkNeigbor(Pair{Row: cell.Row - 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
+		concurrentCheckNeighbor(Pair{Row: cell.Row - 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
 	}
 	if !maze[cell.Row][cell.Col].Right {
-		checkNeigbor(Pair{Row: cell.Row, Col: cell.Col + 1}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
+		concurrentCheckNeighbor(Pair{Row: cell.Row, Col: cell.Col + 1}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
 	}
 	if !maze[cell.Row][cell.Col].Bottom {
-		checkNeigbor(Pair{Row: cell.Row + 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
+		concurrentCheckNeighbor(Pair{Row: cell.Row + 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
 	}
 	if !maze[cell.Row][cell.Col].Left {
-		checkNeigbor(Pair{Row: cell.Row, Col: cell.Col - 1}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
+		concurrentCheckNeighbor(Pair{Row: cell.Row, Col: cell.Col - 1}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
 	}
 }
 
@@ -85,6 +85,66 @@ func ParallelBFS(maze [][]*Cell, numRows int, numCols int) ([]Pair, [][]Pair) {
 			go concurrentOperation(maze, frontier[i], &nextFrontier, &visited, &wg, &mu_visited, &mu_frontier, numRows-1, numCols-1, &success)
 		}
 		wg.Wait()
+		frontier = nextFrontier
+		nextFrontier = []Pair{}
+	}
+	if success > 0 {
+		println("Goal Found!, terminating BFS.")
+	}
+	return reconstructPath(visited, Pair{Row: 0, Col: 0}, Pair{Row: numRows - 1, Col: numCols - 1}), visited
+}
+
+func checkEnd(cell Pair, numRows int, numCols int, success *int) {
+	if cell.Row == numRows && cell.Col == numCols {
+		*success = 1
+	}
+}
+
+func SequentialFindNeighbors(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, numRows int, numCols int, success *int) {
+	if !maze[cell.Row][cell.Col].Top && (*visited)[cell.Row-1][cell.Col] == (Pair{-1, -1}) {
+		checkEnd(Pair{Row: cell.Row - 1, Col: cell.Col}, numRows, numCols, success)
+		(*visited)[cell.Row-1][cell.Col] = Pair{Row: cell.Row, Col: cell.Col}
+		*nextFrontier = append(*nextFrontier, Pair{Row: cell.Row - 1, Col: cell.Col})
+	}
+	if !maze[cell.Row][cell.Col].Right && (*visited)[cell.Row][cell.Col+1] == (Pair{-1, -1}) {
+		checkEnd(Pair{Row: cell.Row, Col: cell.Col + 1}, numRows, numCols, success)
+		(*visited)[cell.Row][cell.Col+1] = Pair{Row: cell.Row, Col: cell.Col}
+		*nextFrontier = append(*nextFrontier, Pair{Row: cell.Row, Col: cell.Col + 1})
+	}
+	if !maze[cell.Row][cell.Col].Bottom && (*visited)[cell.Row+1][cell.Col] == (Pair{-1, -1}) {
+		checkEnd(Pair{Row: cell.Row + 1, Col: cell.Col}, numRows, numCols, success)
+		(*visited)[cell.Row+1][cell.Col] = Pair{Row: cell.Row, Col: cell.Col}
+		*nextFrontier = append(*nextFrontier, Pair{Row: cell.Row + 1, Col: cell.Col})
+	}
+	if !maze[cell.Row][cell.Col].Left && (*visited)[cell.Row][cell.Col-1] == (Pair{-1, -1}) {
+		checkEnd(Pair{Row: cell.Row, Col: cell.Col - 1}, numRows, numCols, success)
+		(*visited)[cell.Row][cell.Col-1] = Pair{Row: cell.Row, Col: cell.Col}
+		*nextFrontier = append(*nextFrontier, Pair{Row: cell.Row, Col: cell.Col - 1})
+	}
+}
+
+func SequentialBFS(maze [][]*Cell, numRows int, numCols int) ([]Pair, [][]Pair) {
+
+	visited := make([][]Pair, len(maze))
+	for i := range visited {
+		visited[i] = make([]Pair, len(maze[0]))
+	}
+	for i := range visited {
+		for j := range visited[0] {
+			visited[i][j] = Pair{Row: -1, Col: -1}
+		}
+	}
+	visited[0][0] = Pair{Row: 0, Col: 0}
+	var frontier []Pair
+	frontier = append(frontier, Pair{Row: 0, Col: 0})
+	nextFrontier := []Pair{}
+
+	var success int = 0
+	for (len(frontier) > 0) && success == 0 {
+
+		for i := range frontier {
+			SequentialFindNeighbors(maze, frontier[i], &nextFrontier, &visited, numRows-1, numCols-1, &success)
+		}
 		frontier = nextFrontier
 		nextFrontier = []Pair{}
 	}

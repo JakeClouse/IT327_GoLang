@@ -48,6 +48,7 @@ func main() {
 	//print maze, taken from Maze.cpp reference file
 	printMaze(Maze)
 	path, _ := ParallelBFS(Maze.Cells, 10, 10)
+	path2, _ := SequentialBFS(Maze.Cells, 10, 10)
 	//show all maze array values
 	// Maze.DS.PrintArrayValues()
 	//print all visited cells and their parents?
@@ -58,5 +59,6 @@ func main() {
 	// }
 	for i := range path {
 		fmt.Printf("Path Cell %d: (%d, %d)\n", i, path[i].Row, path[i].Col)
+		fmt.Printf("Path2 Cell %d: (%d, %d)\n", i, path2[i].Row, path2[i].Col)
 	}
 }

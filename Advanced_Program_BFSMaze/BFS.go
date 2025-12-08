@@ -15,8 +15,8 @@ type Pair struct {
 	Row, Col int
 }
 
-func concurrentCheckNeighbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, parentCell Pair, numRows int, numCols int, success *int32) {
-	if cell.Row == numRows && cell.Col == numCols {
+func concurrentCheckNeighbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, parentCell Pair, targetRow int, targetCol int, success *int32) {
+	if cell.Row == targetRow && cell.Col == targetCol {
 		atomic.AddInt32(success, 1)
 	}
 	mu_visited.Lock()
@@ -32,19 +32,19 @@ func concurrentCheckNeighbor(cell Pair, nextFrontier *[]Pair, visited *[][]Pair,
 
 }
 
-func concurrentOperation(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, wg *sync.WaitGroup, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, numRows int, numCols int, success *int32) {
+func concurrentOperation(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, wg *sync.WaitGroup, mu_visited *sync.Mutex, mu_frontier *sync.Mutex, targetRow int, targetCol int, success *int32) {
 	defer wg.Done()
 	if !maze[cell.Row][cell.Col].Top {
-		concurrentCheckNeighbor(Pair{Row: cell.Row - 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
+		concurrentCheckNeighbor(Pair{Row: cell.Row - 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell, targetRow, targetCol, success)
 	}
 	if !maze[cell.Row][cell.Col].Right {
-		concurrentCheckNeighbor(Pair{Row: cell.Row, Col: cell.Col + 1}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
+		concurrentCheckNeighbor(Pair{Row: cell.Row, Col: cell.Col + 1}, nextFrontier, visited, mu_visited, mu_frontier, cell, targetRow, targetCol, success)
 	}
 	if !maze[cell.Row][cell.Col].Bottom {
-		concurrentCheckNeighbor(Pair{Row: cell.Row + 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
+		concurrentCheckNeighbor(Pair{Row: cell.Row + 1, Col: cell.Col}, nextFrontier, visited, mu_visited, mu_frontier, cell, targetRow, targetCol, success)
 	}
 	if !maze[cell.Row][cell.Col].Left {
-		concurrentCheckNeighbor(Pair{Row: cell.Row, Col: cell.Col - 1}, nextFrontier, visited, mu_visited, mu_frontier, cell, numRows, numCols, success)
+		concurrentCheckNeighbor(Pair{Row: cell.Row, Col: cell.Col - 1}, nextFrontier, visited, mu_visited, mu_frontier, cell, targetRow, targetCol, success)
 	}
 }
 
@@ -94,30 +94,30 @@ func ParallelBFS(maze [][]*Cell, numRows int, numCols int) ([]Pair, [][]Pair) {
 	return reconstructPath(visited, Pair{Row: 0, Col: 0}, Pair{Row: numRows - 1, Col: numCols - 1}), visited
 }
 
-func checkEnd(cell Pair, numRows int, numCols int, success *int) {
-	if cell.Row == numRows && cell.Col == numCols {
+func checkEnd(cell Pair, targetRow int, targetCol int, success *int) {
+	if cell.Row == targetRow && cell.Col == targetCol {
 		*success = 1
 	}
 }
 
-func SequentialFindNeighbors(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, numRows int, numCols int, success *int) {
+func SequentialFindNeighbors(maze [][]*Cell, cell Pair, nextFrontier *[]Pair, visited *[][]Pair, targetRow int, targetCol int, success *int) {
 	if !maze[cell.Row][cell.Col].Top && (*visited)[cell.Row-1][cell.Col] == (Pair{-1, -1}) {
-		checkEnd(Pair{Row: cell.Row - 1, Col: cell.Col}, numRows, numCols, success)
+		checkEnd(Pair{Row: cell.Row - 1, Col: cell.Col}, targetRow, targetCol, success)
 		(*visited)[cell.Row-1][cell.Col] = Pair{Row: cell.Row, Col: cell.Col}
 		*nextFrontier = append(*nextFrontier, Pair{Row: cell.Row - 1, Col: cell.Col})
 	}
 	if !maze[cell.Row][cell.Col].Right && (*visited)[cell.Row][cell.Col+1] == (Pair{-1, -1}) {
-		checkEnd(Pair{Row: cell.Row, Col: cell.Col + 1}, numRows, numCols, success)
+		checkEnd(Pair{Row: cell.Row, Col: cell.Col + 1}, targetRow, targetCol, success)
 		(*visited)[cell.Row][cell.Col+1] = Pair{Row: cell.Row, Col: cell.Col}
 		*nextFrontier = append(*nextFrontier, Pair{Row: cell.Row, Col: cell.Col + 1})
 	}
 	if !maze[cell.Row][cell.Col].Bottom && (*visited)[cell.Row+1][cell.Col] == (Pair{-1, -1}) {
-		checkEnd(Pair{Row: cell.Row + 1, Col: cell.Col}, numRows, numCols, success)
+		checkEnd(Pair{Row: cell.Row + 1, Col: cell.Col}, targetRow, targetCol, success)
 		(*visited)[cell.Row+1][cell.Col] = Pair{Row: cell.Row, Col: cell.Col}
 		*nextFrontier = append(*nextFrontier, Pair{Row: cell.Row + 1, Col: cell.Col})
 	}
 	if !maze[cell.Row][cell.Col].Left && (*visited)[cell.Row][cell.Col-1] == (Pair{-1, -1}) {
-		checkEnd(Pair{Row: cell.Row, Col: cell.Col - 1}, numRows, numCols, success)
+		checkEnd(Pair{Row: cell.Row, Col: cell.Col - 1}, targetRow, targetCol, success)
 		(*visited)[cell.Row][cell.Col-1] = Pair{Row: cell.Row, Col: cell.Col}
 		*nextFrontier = append(*nextFrontier, Pair{Row: cell.Row, Col: cell.Col - 1})
 	}

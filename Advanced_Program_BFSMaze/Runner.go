@@ -1,6 +1,7 @@
 // Testing BFS for IT327 Advanced program
 // Author: Brady McCue
 // Date: 12/7/2025
+
 package main
 
 import (
@@ -8,7 +9,15 @@ import (
 	"time"
 )
 
-func printMaze(m *Maze) {
+func checkSolutionPath(path []Pair, point Pair) bool {
+	for i := range path {
+		if path[i] == point {
+			return true
+		}
+	}
+	return false
+}
+func printMaze(m *Maze, path []Pair) {
 	for r := 0; r < m.Height; r++ {
 		for c := 0; c < m.Width; c++ {
 			if m.Cells[r][c].Top {
@@ -25,7 +34,12 @@ func printMaze(m *Maze) {
 			} else {
 				fmt.Print(" ")
 			}
-			fmt.Print("   ")
+			if (checkSolutionPath(path, Pair{Row: r, Col: c})) {
+				fmt.Print(" X ")
+
+			} else {
+				fmt.Print("   ")
+			}
 		}
 
 		if m.Cells[r][m.Width-1].Right {
@@ -44,39 +58,15 @@ func printMaze(m *Maze) {
 	fmt.Println()
 }
 
-/* bad don't use
-func printPath(visitedArray [][]Pair) {
-
-	goal := visitedArray[len(visitedArray)-1][len(visitedArray[0])-1]
-	start := visitedArray[0][0]
-	current := goal
-
-	goalColumn := len(visitedArray[0]) - 1
-	goalRow := len(visitedArray) - 1
-
-	i := goalRow
-	j := goalColumn
-	fmt.Println("Path from Goal to start found: ")
-	//backtracking from goal to start
-	for current != start {
-		fmt.Printf("Cell (%d, %d) came from (%d, %d)\n", i, j, visitedArray[i][j].Row, visitedArray[i][j].Col)
-		i = visitedArray[i][j].Row
-		j = visitedArray[i][j].Col
-		current = visitedArray[i][j]
-	}
-
-}
-*/
-
 func main() {
-	Maze := CreateMaze(10, 10)
+	Maze := CreateMaze(100, 100)
 	//print maze, taken from Maze.cpp reference file
-	printMaze(Maze)
+	printMaze(Maze, nil)
 
 	startBFSTime := time.Now()
-	fmt.Println("Starting Parallel BFS...")
+	fmt.Println("\nStarting Parallel BFS...")
 
-	path, _ := ParallelBFS(Maze.Cells, 10, 10)
+	path, _ := ParallelBFS(Maze.Cells, 100, 100)
 	//Maze.DS.PrintArrayValues()
 
 	elapsedBFSTime := time.Since(startBFSTime)
@@ -86,15 +76,13 @@ func main() {
 	startSequentialBFSTime := time.Now()
 	fmt.Println("Starting Sequential BFS...")
 
-	path2, _ := SequentialBFS(Maze.Cells, 10, 10)
+	SequentialBFS(Maze.Cells, 100, 100)
 	//Maze.DS.PrintArrayValues()
 
 	elapsedSequentialBFSTime := time.Since(startSequentialBFSTime)
 
-	fmt.Printf("Sequential BFS took %s\n", elapsedSequentialBFSTime)
+	fmt.Printf("Sequential BFS took %s\n\n", elapsedSequentialBFSTime)
 
-	for i := range path {
-		fmt.Printf("Path Cell %d: (%d, %d)\n", i, path[i].Row, path[i].Col)
-		fmt.Printf("Path2 Cell %d: (%d, %d)\n", i, path2[i].Row, path2[i].Col)
-	}
+	printMaze(Maze, path)
+
 }

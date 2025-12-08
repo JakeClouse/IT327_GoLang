@@ -1,12 +1,10 @@
-//Testing BFS for IT327 Advanced program
+// Testing BFS for IT327 Advanced program
 // Author: Brady McCue
 // Date: 12/7/2025
 package main
 
 import (
 	"fmt"
-	"math/rand"
-	"sync"
 )
 
 func printMaze(m *Maze) {
@@ -47,10 +45,10 @@ func printMaze(m *Maze) {
 
 func main() {
 	Maze := CreateMaze(10, 10)
-  //print maze, taken from Maze.cpp reference file
-  printMaze(Maze)
-	visited := paralellBFS(Maze.Cells, 0, 0)
-  //show all maze array values
+	//print maze, taken from Maze.cpp reference file
+	printMaze(Maze)
+	visited := ParallelBFS(Maze.Cells, 0, 0)
+	//show all maze array values
 	Maze.DS.PrintArrayValues()
 	//print all visited cells and their parents?
 	for i := range visited {

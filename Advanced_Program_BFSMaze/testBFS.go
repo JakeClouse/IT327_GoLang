@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 func printMaze(m *Maze) {
@@ -43,22 +44,46 @@ func printMaze(m *Maze) {
 	fmt.Println()
 }
 
+/* bad don't use
+func printPath(visitedArray [][]Pair) {
+
+	goal := visitedArray[len(visitedArray)-1][len(visitedArray[0])-1]
+	start := visitedArray[0][0]
+	current := goal
+
+	goalColumn := len(visitedArray[0]) - 1
+	goalRow := len(visitedArray) - 1
+
+	i := goalRow
+	j := goalColumn
+	fmt.Println("Path from Goal to start found: ")
+	//backtracking from goal to start
+	for current != start {
+		fmt.Printf("Cell (%d, %d) came from (%d, %d)\n", i, j, visitedArray[i][j].Row, visitedArray[i][j].Col)
+		i = visitedArray[i][j].Row
+		j = visitedArray[i][j].Col
+		current = visitedArray[i][j]
+	}
+
+}
+*/
+
 func main() {
 	Maze := CreateMaze(10, 10)
 	//print maze, taken from Maze.cpp reference file
 	printMaze(Maze)
+
+	startBFSTime := time.Now()
+	fmt.Println("Starting Parallel BFS...")
+
 	path, _ := ParallelBFS(Maze.Cells, 10, 10)
-	path2, _ := SequentialBFS(Maze.Cells, 10, 10)
-	//show all maze array values
-	// Maze.DS.PrintArrayValues()
-	//print all visited cells and their parents?
-	// for i := range visited {
-	// 	for j := range visited[0] {
-	// 		fmt.Printf("Cell (%d, %d) came from (%d, %d)\n", i, j, visited[i][j].Row, visited[i][j].Col)
-	// 	}
-	// }
+	//Maze.DS.PrintArrayValues()
+
+	elapsedBFSTime := time.Since(startBFSTime)
+
+	fmt.Printf("Parallel BFS took %s\n", elapsedBFSTime)
+
 	for i := range path {
 		fmt.Printf("Path Cell %d: (%d, %d)\n", i, path[i].Row, path[i].Col)
-		fmt.Printf("Path2 Cell %d: (%d, %d)\n", i, path2[i].Row, path2[i].Col)
 	}
 }

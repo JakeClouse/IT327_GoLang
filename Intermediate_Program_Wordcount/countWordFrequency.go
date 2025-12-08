@@ -15,7 +15,7 @@ func main() {
 
 	// Ensure proper use
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: go run main.go <filename>")
+		fmt.Println("Usage: go run countWordFrequency.go <filename>")
 		return
 	}
 	filename := os.Args[1]
